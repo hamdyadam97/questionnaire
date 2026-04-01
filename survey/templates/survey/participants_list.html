@@ -1,0 +1,91 @@
+{% extends 'survey/base.html' %}
+
+{% block title %}قائمة المشاركين - استبيان العزلة الإلكترونية{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="fw-bold" style="color: var(--primary-color);">
+                <i class="fas fa-users me-3"></i>قائمة المشاركين
+            </h2>
+            <div>
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-arrow-right me-2"></i>رجوع للوحة التحكم
+                </a>
+            </div>
+        </div>
+        <p class="text-muted">عرض جميع المشاركين في الاستبيان مع تفاصيلهم</p>
+    </div>
+</div>
+
+<!-- Participants Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>المشاركون ({{ participants|length }})
+                    </h5>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>النوع</th>
+                                <th>السن</th>
+                                <th>الكلية</th>
+                                <th>الفرقة</th>
+                                <th>الساعات اليومية</th>
+                                <th>تاريخ المشاركة</th>
+                                <th>عدد الإجابات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for participant in participants %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        {% if participant.gender == 'male' %}
+                                            <i class="fas fa-male text-primary me-1"></i>ذكر
+                                        {% else %}
+                                            <i class="fas fa-female text-danger me-1"></i>أنثى
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ participant.age }}</td>
+                                    <td>{{ participant.college }}</td>
+                                    <td>{{ participant.get_year_display }}</td>
+                                    <td>{{ participant.get_daily_hours_display }}</td>
+                                    <td>
+                                        <i class="fas fa-calendar-alt text-muted me-1"></i>
+                                        {{ participant.created_at|date:"Y-m-d" }}
+                                        <small class="text-muted d-block">{{ participant.created_at|time:"H:i" }}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-info">{{ participant.answers.count }}</span>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center py-5">
+                                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                        <p class="text-muted">لا يوجد مشاركين حالياً</p>
+                                        <a href="{% url 'survey_start' %}" class="btn btn-primary">
+                                            <i class="fas fa-plus me-2"></i>إضافة مشارك
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

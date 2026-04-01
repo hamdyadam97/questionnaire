@@ -1,0 +1,185 @@
+{% extends 'survey/base.html' %}
+
+{% block title %}الرئيسية - استبيان العزلة الإلكترونية{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="display-5 fw-bold mb-3">
+            <i class="fas fa-laptop-medical me-3"></i>استبيان العزلة الإلكترونية
+        </h1>
+        <p class="lead mb-4">
+            آثار العزلة الإلكترونية ودور الخدمة الاجتماعية في التخفيف من أثارها السلبية لدى الشباب الجامعي
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'survey_start' %}" class="btn btn-light btn-lg">
+                <i class="fas fa-clipboard-list me-2"></i>المشاركة في الاستبيان
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-chart-bar me-2"></i>عرض النتائج
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-5">
+    <div class="col-md-4 mb-4">
+        <div class="card stat-card animate-fade-in">
+            <div class="stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="stat-number">{{ total_participants }}</div>
+            <div class="stat-label">عدد المشاركين</div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card stat-card animate-fade-in">
+            <div class="stat-icon">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <div class="stat-number">{{ total_questions }}</div>
+            <div class="stat-label">عدد الأسئلة</div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card stat-card animate-fade-in">
+            <div class="stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stat-number">{{ total_answers }}</div>
+            <div class="stat-label">إجمالي الإجابات</div>
+        </div>
+    </div>
+</div>
+
+<!-- Study Objectives -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="fas fa-bullseye me-2"></i>أهداف الدراسة</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-start">
+                            <span class="badge bg-primary me-3 fs-6">1</span>
+                            <p class="mb-0">تحديد واقع العزلة الإلكترونية بين الشباب الجامعي</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-start">
+                            <span class="badge bg-primary me-3 fs-6">2</span>
+                            <p class="mb-0">تحديد الآثار السلبية المترتبة على العزلة الإلكترونية</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-start">
+                            <span class="badge bg-primary me-3 fs-6">3</span>
+                            <p class="mb-0">تحديد المقترحات التي تساعد على التخفيف من الآثار السلبية</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <div class="d-flex align-items-start">
+                            <span class="badge bg-primary me-3 fs-6">4</span>
+                            <p class="mb-0">التوصل إلى تصور مقترح من منظور الخدمة الاجتماعية</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Research Questions -->
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h4 class="mb-0"><i class="fas fa-question me-2"></i>تساؤلات البحث</h4>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="fas fa-check-circle text-info me-3"></i>
+                        ما واقع العزلة الإلكترونية بين الشباب الجامعي؟
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="fas fa-check-circle text-info me-3"></i>
+                        ما الآثار السلبية المترتبة على العزلة الإلكترونية بين الشباب الجامعي؟
+                    </li>
+                    <li class="list-group-item d-flex align-items-center">
+                        <i class="fas fa-check-circle text-info me-3"></i>
+                        ما المقترحات التي تساعد على التخفيف من الآثار السلبية؟
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Survey Sections -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <h3 class="fw-bold text-center" style="color: var(--primary-color);">
+            <i class="fas fa-list-alt me-2"></i>أقسام الاستبيان
+        </h3>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center p-4">
+            <div class="mb-3">
+                <i class="fas fa-user-edit fa-3x text-primary"></i>
+            </div>
+            <h5 class="fw-bold">البيانات الأولية</h5>
+            <p class="text-muted">النوع، السن، الكلية، الفرقة، استخدام الإنترنت</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center p-4">
+            <div class="mb-3">
+                <i class="fas fa-chart-line fa-3x text-warning"></i>
+            </div>
+            <h5 class="fw-bold">واقع العزلة الإلكترونية</h5>
+            <p class="text-muted">تفشي الظاهرة ومدى انتشارها بين الطلاب</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center p-4">
+            <div class="mb-3">
+                <i class="fas fa-graduation-cap fa-3x text-success"></i>
+            </div>
+            <h5 class="fw-bold">التأثير على التحصيل</h5>
+            <p class="text-muted">أثر العزلة الإلكترونية على التحصيل الدراسي</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center p-4">
+            <div class="mb-3">
+                <i class="fas fa-users fa-3x text-info"></i>
+            </div>
+            <h5 class="fw-bold">العلاقات الاجتماعية</h5>
+            <p class="text-muted">تأثير العزلة على العلاقات الاجتماعية</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center p-4">
+            <div class="mb-3">
+                <i class="fas fa-brain fa-3x text-danger"></i>
+            </div>
+            <h5 class="fw-bold">الحالة النفسية</h5>
+            <p class="text-muted">تأثير العزلة على الحالة النفسية</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="card h-100 text-center p-4">
+            <div class="mb-3">
+                <i class="fas fa-lightbulb fa-3x text-warning"></i>
+            </div>
+            <h5 class="fw-bold">المقترحات</h5>
+            <p class="text-muted">مقترحات للتخفيف من الآثار السلبية</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

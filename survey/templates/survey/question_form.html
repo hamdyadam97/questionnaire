@@ -1,0 +1,87 @@
+{% extends 'survey/base.html' %}
+
+{% block title %}{{ action }} سؤال - استبيان العزلة الإلكترونية{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card animate-fade-in">
+            <div class="card-header bg-primary text-white py-3">
+                <h4 class="mb-0">
+                    <i class="fas fa-question-circle me-2"></i>{{ action }} سؤال
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label for="{{ form.text.id_for_label }}" class="form-label fw-bold">
+                            <i class="fas fa-align-right me-2 text-primary"></i>{{ form.text.label }}
+                        </label>
+                        {{ form.text }}
+                        {% if form.text.errors %}
+                            <div class="text-danger mt-2">
+                                {% for error in form.text.errors %}
+                                    <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label for="{{ form.category.id_for_label }}" class="form-label fw-bold">
+                                    <i class="fas fa-layer-group me-2 text-primary"></i>{{ form.category.label }}
+                                </label>
+                                {{ form.category }}
+                                {% if form.category.errors %}
+                                    <div class="text-danger mt-2">
+                                        {% for error in form.category.errors %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <label for="{{ form.order.id_for_label }}" class="form-label fw-bold">
+                                    <i class="fas fa-sort-numeric-down me-2 text-primary"></i>{{ form.order.label }}
+                                </label>
+                                {{ form.order }}
+                                {% if form.order.errors %}
+                                    <div class="text-danger mt-2">
+                                        {% for error in form.order.errors %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check">
+                            {{ form.is_active }}
+                            <label class="form-check-label fw-bold" for="{{ form.is_active.id_for_label }}">
+                                <i class="fas fa-check-circle me-2 text-primary"></i>{{ form.is_active.label }}
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-between mt-4">
+                        <a href="{% url 'questions_management' %}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-right me-2"></i>رجوع
+                        </a>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save me-2"></i>حفظ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
