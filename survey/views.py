@@ -159,8 +159,8 @@ def dashboard(request):
                 'no_pct': round((no_count / total) * 100, 2),
             })
     
-    # إنشاء الرسوم البيانية
-    charts = generate_category_charts(category_results)
+    # إنشاء الرسوم البيانية (Bar Charts لكل تصنيف)
+    charts = generate_bar_charts_by_category(categories)
     
     context = {
         'total_participants': total_participants,
@@ -210,6 +210,114 @@ def generate_category_charts(category_results):
             'category': result['category'],
             'chart': graphic,
             'data': result
+        })
+    
+    return charts
+
+
+def generate_bar_charts_by_category(categories):
+    """إنشاء Bar Charts لكل تصنيف يعرض كل الأسئلة"""
+    import numpy as np
+    import matplotlib.font_manager as fm
+    
+    # البحث عن خط عربي متاح في النظام
+    arabic_font = None
+    system_fonts = fm.findSystemFonts(fontpaths=None, fontext='ttf')
+    
+    for font_path in system_fonts:
+        try:
+            prop = fm.FontProperties(fname=font_path)
+            font_name = prop.get_name()
+            # تجربة الخط على نص عربي
+            if any(keyword in font_path.lower() for keyword in ['arial', 'tahoma', 'segoe', 'arialuni', 'noto', 'freesans']):
+                arabic_font = prop
+                break
+        except:
+            continue
+    
+    # إذا لم نجد خط عربي، نستخدم DejaVu Sans (لن يظهر العربي)
+    if arabic_font is None:
+        arabic_font = fm.FontProperties(family='DejaVu Sans')
+    
+    charts = []
+    
+    for cat_key, cat_name in categories:
+        questions = Question.objects.filter(category=cat_key, is_active=True).order_by('order')
+        
+        if not questions.exists():
+            continue
+        
+        # جمع بيانات كل سؤال
+        question_labels = []
+        yes_counts = []
+        no_counts = []
+        somewhat_counts = []
+        
+        for i, q in enumerate(questions, 1):
+            # استخدام أرقام للأسئلة بدلاً من النص الكامل
+            question_labels.append(f'س{i}')
+            
+            answers = Answer.objects.filter(question=q)
+            yes_counts.append(answers.filter(answer='yes').count())
+            no_counts.append(answers.filter(answer='no').count())
+            somewhat_counts.append(answers.filter(answer='somewhat').count())
+        
+        if not any(yes_counts + no_counts + somewhat_counts):
+            continue
+        
+        # إنشاء الرسم البياني
+        fig, ax = plt.subplots(figsize=(12, 6))
+        
+        x = np.arange(len(question_labels))
+        width = 0.25
+        
+        # الألوان مطابقة للصورة (أزرق = نعم، برتقالي = لا، أصفر = إلى حد ما)
+        # استخدام أحرف إنجليزية في الرسم لأن matplotlib لا يدعم العربية جيداً
+        bars1 = ax.bar(x - width, yes_counts, width, label='Yes', color='#4472C4')
+        bars2 = ax.bar(x, no_counts, width, label='No', color='#ED7D31')
+        bars3 = ax.bar(x + width, somewhat_counts, width, label='Somewhat', color='#FFC000')
+        
+        # إعدادات المحاور - بدون نصوص عربية
+        ax.set_ylabel('Count', fontsize=12)
+        ax.set_xticks(x)
+        ax.set_xticklabels(question_labels, fontsize=10)
+        
+        # legend بالإنجليزية
+        ax.legend(loc='upper right', fontsize=10)
+        
+        # شبكة أفقية
+        ax.yaxis.grid(True, linestyle='--', alpha=0.7)
+        ax.set_axisbelow(True)
+        
+        # ضبط المسافات
+        plt.tight_layout()
+        
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png', bbox_inches='tight', dpi=120)
+        buffer.seek(0)
+        image_png = buffer.getvalue()
+        buffer.close()
+        plt.close()
+        
+        graphic = base64.b64encode(image_png).decode('utf-8')
+        
+        # إنشاء قائمة الأسئلة مع أرقامها
+        question_list = []
+        for i, q in enumerate(questions, 1):
+            question_list.append({
+                'number': f'س{i}',
+                'text': q.text
+            })
+        
+        charts.append({
+            'category': cat_name,
+            'chart': graphic,
+            'data': {
+                'yes_count': sum(yes_counts),
+                'no_count': sum(no_counts),
+                'somewhat_count': sum(somewhat_counts),
+            },
+            'questions': question_list
         })
     
     return charts

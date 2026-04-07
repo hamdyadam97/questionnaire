@@ -41,6 +41,8 @@ class Participant(models.Model):
     
     # البيانات الأساسية
     name = models.CharField(max_length=100, verbose_name="الاسم (اختياري)", blank=True, null=True)
+    email = models.EmailField(max_length=150, verbose_name="البريد الإلكتروني", blank=True, null=True)
+    university = models.CharField(max_length=150, verbose_name="الجامعة", blank=True, null=True)
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES, verbose_name="النوع")
     age = models.PositiveIntegerField(verbose_name="السن", validators=[MinValueValidator(17), MaxValueValidator(35)])
     college = models.CharField(max_length=100, verbose_name="الكلية")
