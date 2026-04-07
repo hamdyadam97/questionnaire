@@ -94,55 +94,111 @@
     {% endfor %}
 </div>
 
-<!-- Category Results -->
+<!-- Category Results - Detailed by Question -->
 <div class="row mb-5">
     <div class="col-12">
         <h4 class="fw-bold mb-4" style="color: var(--primary-color);">
-            <i class="fas fa-layer-group me-2"></i>النتائج حسب التصنيف
+            <i class="fas fa-layer-group me-2"></i>النتائج التفصيلية حسب السؤال
         </h4>
     </div>
     {% for result in category_results %}
-        <div class="col-md-6 mb-4">
-            <div class="card">
+        <div class="col-12 mb-4">
+            <div class="card shadow">
                 <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">{{ result.category }}</h5>
+                    <h5 class="mb-0 fw-bold">{{ result.category }}</h5>
+                    <small class="opacity-75">إجمالي الإجابات: {{ result.total }}</small>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span><i class="fas fa-check-circle text-success me-1"></i>نعم</span>
-                            <span class="fw-bold">{{ result.yes_pct }}%</span>
-                        </div>
-                        <div class="progress">
-                            <div class="progress-bar bg-success" style="width: {{ result.yes_pct }}%">
-                                {{ result.yes_pct }}%
+                <div class="card-body p-0">
+                    <!-- ملخص القسم -->
+                    <div class="p-3 bg-light border-bottom">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-success"><i class="fas fa-check-circle me-1"></i>نعم (إجمالي)</span>
+                                    <span class="fw-bold">{{ result.yes_pct }}%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-success" style="width: {{ result.yes_pct }}%"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-warning"><i class="fas fa-minus-circle me-1"></i>إلى حد ما (إجمالي)</span>
+                                    <span class="fw-bold">{{ result.somewhat_pct }}%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" style="width: {{ result.somewhat_pct }}%"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="text-danger"><i class="fas fa-times-circle me-1"></i>لا (إجمالي)</span>
+                                    <span class="fw-bold">{{ result.no_pct }}%</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-danger" style="width: {{ result.no_pct }}%"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span><i class="fas fa-minus-circle text-warning me-1"></i>إلى حد ما</span>
-                            <span class="fw-bold">{{ result.somewhat_pct }}%</span>
-                        </div>
-                        <div class="progress">
-                            <div class="progress-bar bg-warning" style="width: {{ result.somewhat_pct }}%">
-                                {{ result.somewhat_pct }}%
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span><i class="fas fa-times-circle text-danger me-1"></i>لا</span>
-                            <span class="fw-bold">{{ result.no_pct }}%</span>
-                        </div>
-                        <div class="progress">
-                            <div class="progress-bar bg-danger" style="width: {{ result.no_pct }}%">
-                                {{ result.no_pct }}%
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-center mt-3">
-                        <span class="badge bg-secondary">إجمالي الإجابات: {{ result.total }}</span>
+                    
+                    <!-- تفاصيل الأسئلة -->
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="width: 50px;">#</th>
+                                    <th>نص السؤال</th>
+                                    <th style="width: 120px;">✓ نعم</th>
+                                    <th style="width: 120px;">~ إلى حد ما</th>
+                                    <th style="width: 120px;">✗ لا</th>
+                                    <th style="width: 100px;">الإجمالي</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for q in result.questions %}
+                                <tr>
+                                    <td class="fw-bold text-primary">{{ q.number }}</td>
+                                    <td>
+                                        <small>{{ q.text }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 20px;">
+                                                <div class="progress-bar bg-success" style="width: {{ q.yes_pct }}%">
+                                                    {{ q.yes_pct }}%
+                                                </div>
+                                            </div>
+                                            <span class="badge bg-success">{{ q.yes_count }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 20px;">
+                                                <div class="progress-bar bg-warning text-dark" style="width: {{ q.somewhat_pct }}%">
+                                                    {{ q.somewhat_pct }}%
+                                                </div>
+                                            </div>
+                                            <span class="badge bg-warning text-dark">{{ q.somewhat_count }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress flex-grow-1 me-2" style="height: 20px;">
+                                                <div class="progress-bar bg-danger" style="width: {{ q.no_pct }}%">
+                                                    {{ q.no_pct }}%
+                                                </div>
+                                            </div>
+                                            <span class="badge bg-danger">{{ q.no_count }}</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ q.total }}</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

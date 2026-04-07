@@ -130,7 +130,7 @@ def dashboard(request):
         count = Participant.objects.filter(daily_hours=hours_key).count()
         hours_stats.append({'name': hours_name, 'count': count})
     
-    # نتائج الأسئلة حسب التصنيف
+    # نتائج الأسئلة حسب التصنيف مع تفاصيل كل سؤال
     categories = [
         ('internet_usage_goal', 'الهدف من استخدام الإنترنت'),
         ('isolation_reality', 'واقع تفشي ظاهرة العزلة الإلكترونية'),
@@ -142,22 +142,48 @@ def dashboard(request):
     
     category_results = []
     for cat_key, cat_name in categories:
-        questions = Question.objects.filter(category=cat_key, is_active=True)
-        answers = Answer.objects.filter(question__in=questions)
-        total = answers.count()
+        questions = Question.objects.filter(category=cat_key, is_active=True).order_by('order')
         
-        if total > 0:
-            yes_count = answers.filter(answer='yes').count()
-            somewhat_count = answers.filter(answer='somewhat').count()
-            no_count = answers.filter(answer='no').count()
+        # إحصائيات القسم الكلية
+        all_answers = Answer.objects.filter(question__in=questions)
+        total_cat_answers = all_answers.count()
+        
+        cat_data = {
+            'category': cat_name,
+            'cat_key': cat_key,
+            'total': total_cat_answers,
+            'questions': []
+        }
+        
+        if total_cat_answers > 0:
+            cat_data['yes_pct'] = round((all_answers.filter(answer='yes').count() / total_cat_answers) * 100, 2)
+            cat_data['somewhat_pct'] = round((all_answers.filter(answer='somewhat').count() / total_cat_answers) * 100, 2)
+            cat_data['no_pct'] = round((all_answers.filter(answer='no').count() / total_cat_answers) * 100, 2)
+        
+        # إحصائيات كل سؤال على حدة
+        for idx, question in enumerate(questions, 1):
+            q_answers = Answer.objects.filter(question=question)
+            total_q = q_answers.count()
             
-            category_results.append({
-                'category': cat_name,
-                'total': total,
-                'yes_pct': round((yes_count / total) * 100, 2),
-                'somewhat_pct': round((somewhat_count / total) * 100, 2),
-                'no_pct': round((no_count / total) * 100, 2),
-            })
+            if total_q > 0:
+                yes_q = q_answers.filter(answer='yes').count()
+                somewhat_q = q_answers.filter(answer='somewhat').count()
+                no_q = q_answers.filter(answer='no').count()
+                
+                question_data = {
+                    'number': idx,
+                    'text': question.text,
+                    'total': total_q,
+                    'yes_count': yes_q,
+                    'somewhat_count': somewhat_q,
+                    'no_count': no_q,
+                    'yes_pct': round((yes_q / total_q) * 100, 2),
+                    'somewhat_pct': round((somewhat_q / total_q) * 100, 2),
+                    'no_pct': round((no_q / total_q) * 100, 2),
+                }
+                cat_data['questions'].append(question_data)
+        
+        category_results.append(cat_data)
     
     # إنشاء الرسوم البيانية (Bar Charts لكل تصنيف)
     charts = generate_bar_charts_by_category(categories)
@@ -266,21 +292,52 @@ def generate_bar_charts_by_category(categories):
             continue
         
         # إنشاء الرسم البياني
-        fig, ax = plt.subplots(figsize=(12, 6))
+        fig, ax = plt.subplots(figsize=(14, 7))
         
         x = np.arange(len(question_labels))
         width = 0.25
         
+        # حساب النسب المئوية لكل سؤال
+        yes_pcts = []
+        no_pcts = []
+        somewhat_pcts = []
+        
+        for i in range(len(yes_counts)):
+            total = yes_counts[i] + no_counts[i] + somewhat_counts[i]
+            if total > 0:
+                yes_pcts.append(round((yes_counts[i] / total) * 100, 1))
+                no_pcts.append(round((no_counts[i] / total) * 100, 1))
+                somewhat_pcts.append(round((somewhat_counts[i] / total) * 100, 1))
+            else:
+                yes_pcts.append(0)
+                no_pcts.append(0)
+                somewhat_pcts.append(0)
+        
         # الألوان مطابقة للصورة (أزرق = نعم، برتقالي = لا، أصفر = إلى حد ما)
-        # استخدام أحرف إنجليزية في الرسم لأن matplotlib لا يدعم العربية جيداً
         bars1 = ax.bar(x - width, yes_counts, width, label='Yes', color='#4472C4')
         bars2 = ax.bar(x, no_counts, width, label='No', color='#ED7D31')
         bars3 = ax.bar(x + width, somewhat_counts, width, label='Somewhat', color='#FFC000')
         
-        # إعدادات المحاور - بدون نصوص عربية
+        # إضافة النسب المئوية فوق الأعمدة
+        def add_percentage_labels(bars, percentages, counts):
+            for bar, pct, count in zip(bars, percentages, counts):
+                height = bar.get_height()
+                if height > 0:
+                    ax.text(bar.get_x() + bar.get_width()/2., height + 5,
+                           f'{pct}%\n({count})',
+                           ha='center', va='bottom', fontsize=7, fontweight='bold')
+        
+        add_percentage_labels(bars1, yes_pcts, yes_counts)
+        add_percentage_labels(bars2, no_pcts, no_counts)
+        add_percentage_labels(bars3, somewhat_pcts, somewhat_counts)
+        
+        # إعدادات المحاور
         ax.set_ylabel('Count', fontsize=12)
         ax.set_xticks(x)
         ax.set_xticklabels(question_labels, fontsize=10)
+        
+        # تعديل حدود المحور Y لإفساح مجال للنصوص
+        ax.set_ylim(0, max(max(yes_counts), max(no_counts), max(somewhat_counts)) * 1.2)
         
         # legend بالإنجليزية
         ax.legend(loc='upper right', fontsize=10)
