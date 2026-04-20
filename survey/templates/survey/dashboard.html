@@ -94,6 +94,86 @@
     {% endfor %}
 </div>
 
+<!-- Age Distribution -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h4 class="fw-bold mb-4" style="color: var(--primary-color);">
+            <i class="fas fa-birthday-cake me-2"></i>توزيع المشاركين حسب العمر
+        </h4>
+    </div>
+    {% for age in age_stats %}
+        <div class="col-md-2 col-sm-4 col-6 mb-4">
+            <div class="card text-center p-3">
+                <h6 class="fw-bold" style="color: var(--primary-color);">{{ age.age }} سنة</h6>
+                <h3 class="fw-bold">{{ age.count }}</h3>
+                <div class="mt-2">
+                    <span class="badge bg-primary fs-6">{{ age.pct }}%</span>
+                </div>
+                <small class="text-muted">مشارك</small>
+            </div>
+        </div>
+    {% endfor %}
+    {% if age_chart %}
+    <div class="col-12 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <img src="data:image/png;base64,{{ age_chart }}" alt="توزيع العمر" class="img-fluid" style="max-width: 100%;">
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- College Distribution -->
+<div class="row mb-5">
+    <div class="col-12">
+        <h4 class="fw-bold mb-4" style="color: var(--primary-color);">
+            <i class="fas fa-university me-2"></i>توزيع المشاركين حسب الكلية
+        </h4>
+    </div>
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>الكلية</th>
+                        <th>عدد المشاركين</th>
+                        <th>النسبة المئوية</th>
+                        <th style="width: 40%;">التوزيع</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for college in college_stats %}
+                    <tr>
+                        <td class="fw-bold text-primary">{{ forloop.counter }}</td>
+                        <td>{{ college.name }}</td>
+                        <td><span class="badge bg-secondary">{{ college.count }}</span></td>
+                        <td><span class="fw-bold">{{ college.pct }}%</span></td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-info text-dark" style="width: {{ college.pct }}%">
+                                    {{ college.pct }}%
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if college_chart %}
+    <div class="col-12 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <img src="data:image/png;base64,{{ college_chart }}" alt="توزيع الكليات" class="img-fluid" style="max-width: 100%;">
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
 <!-- Category Results - Detailed by Question -->
 <div class="row mb-5">
     <div class="col-12">

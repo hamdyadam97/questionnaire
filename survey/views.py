@@ -130,6 +130,30 @@ def dashboard(request):
         count = Participant.objects.filter(daily_hours=hours_key).count()
         hours_stats.append({'name': hours_name, 'count': count})
     
+    # إحصائيات حسب العمر (من 18 لـ 23 سنة بس)
+    age_stats = []
+    total_with_age = Participant.objects.exclude(age__isnull=True).count()
+    for age in range(18, 24):
+        count = Participant.objects.filter(age=age).count()
+        pct = round((count / total_with_age) * 100, 2) if total_with_age > 0 else 0
+        age_stats.append({'age': age, 'count': count, 'pct': pct})
+    
+    # رسم بياني لتوزيع العمر
+    age_chart = generate_age_chart()
+    
+    # إحصائيات حسب الكلية
+    from django.db.models import Count as DBCount
+    college_data = Participant.objects.values('college').annotate(cnt=DBCount('id')).order_by('-cnt')
+    total_college = Participant.objects.exclude(college__isnull=True).exclude(college='').count()
+    college_stats = []
+    for item in college_data:
+        count = item['cnt']
+        pct = round((count / total_college) * 100, 2) if total_college > 0 else 0
+        college_stats.append({'name': item['college'], 'count': count, 'pct': pct})
+    
+    # رسم بياني للكليات
+    college_chart = generate_college_chart()
+    
     # نتائج الأسئلة حسب التصنيف مع تفاصيل كل سؤال
     categories = [
         ('internet_usage_goal', 'الهدف من استخدام الإنترنت'),
@@ -196,6 +220,10 @@ def dashboard(request):
         'female_count': female_count,
         'year_stats': year_stats,
         'hours_stats': hours_stats,
+        'age_stats': age_stats,
+        'age_chart': age_chart,
+        'college_stats': college_stats,
+        'college_chart': college_chart,
         'category_results': category_results,
         'charts': charts,
     }
@@ -378,6 +406,131 @@ def generate_bar_charts_by_category(categories):
         })
     
     return charts
+
+
+def generate_age_chart():
+    """إنشاء رسم بياني لتوزيع المشاركين حسب العمر (18 لـ 23)"""
+    import matplotlib.font_manager as fm
+    
+    arabic_font = None
+    system_fonts = fm.findSystemFonts(fontpaths=None, fontext='ttf')
+    for font_path in system_fonts:
+        try:
+            prop = fm.FontProperties(fname=font_path)
+            if any(keyword in font_path.lower() for keyword in ['arial', 'tahoma', 'segoe', 'arialuni', 'noto', 'freesans']):
+                arabic_font = prop
+                break
+        except:
+            continue
+    if arabic_font is None:
+        arabic_font = fm.FontProperties(family='DejaVu Sans')
+    
+    labels = []
+    counts = []
+    percentages = []
+    total = Participant.objects.exclude(age__isnull=True).count()
+    for age in range(18, 24):
+        count = Participant.objects.filter(age=age).count()
+        labels.append(str(age))
+        counts.append(count)
+        percentages.append(round((count / total) * 100, 1) if total > 0 else 0)
+    
+    if total == 0:
+        return None
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    colors = ['#3498db', '#2ecc71', '#9b59b6', '#e74c3c', '#f39c12', '#1abc9c']
+    bars = ax.bar(labels, counts, color=colors, width=0.6, edgecolor='white', linewidth=1.5)
+    
+    for bar, count, pct in zip(bars, counts, percentages):
+        height = bar.get_height()
+        if height > 0:
+            ax.text(bar.get_x() + bar.get_width() / 2., height + 5,
+                    f'{count}\n({pct}%)',
+                    ha='center', va='bottom', fontsize=11, fontweight='bold')
+    
+    ax.set_ylabel('عدد المشاركين', fontproperties=arabic_font, fontsize=12)
+    ax.set_xlabel('السن', fontproperties=arabic_font, fontsize=12)
+    ax.set_title('توزيع المشاركين حسب السن', fontproperties=arabic_font, fontsize=14, fontweight='bold', pad=15)
+    ax.set_ylim(0, max(counts) * 1.2 if counts else 10)
+    ax.yaxis.grid(True, linestyle='--', alpha=0.7)
+    ax.set_axisbelow(True)
+    plt.tight_layout()
+    
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png', bbox_inches='tight', dpi=120)
+    buffer.seek(0)
+    image_png = buffer.getvalue()
+    buffer.close()
+    plt.close()
+    
+    return base64.b64encode(image_png).decode('utf-8')
+
+
+def generate_college_chart():
+    """إنشاء رسم بياني أفقي لتوزيع المشاركين حسب الكلية"""
+    import matplotlib.font_manager as fm
+    import numpy as np
+    
+    arabic_font = None
+    system_fonts = fm.findSystemFonts(fontpaths=None, fontext='ttf')
+    for font_path in system_fonts:
+        try:
+            prop = fm.FontProperties(fname=font_path)
+            if any(keyword in font_path.lower() for keyword in ['arial', 'tahoma', 'segoe', 'arialuni', 'noto', 'freesans']):
+                arabic_font = prop
+                break
+        except:
+            continue
+    if arabic_font is None:
+        arabic_font = fm.FontProperties(family='DejaVu Sans')
+    
+    from django.db.models import Count as DBCount
+    college_data = Participant.objects.values('college').annotate(cnt=DBCount('id')).order_by('-cnt')
+    total = Participant.objects.exclude(college__isnull=True).exclude(college='').count()
+    
+    if total == 0 or not college_data:
+        return None
+    
+    labels = []
+    counts = []
+    percentages = []
+    for item in college_data:
+        labels.append(item['college'])
+        counts.append(item['cnt'])
+        percentages.append(round((item['cnt'] / total) * 100, 1))
+    
+    # رسم أفقي (Horizontal Bar Chart)
+    fig, ax = plt.subplots(figsize=(12, max(6, len(labels) * 0.4)))
+    y_pos = np.arange(len(labels))
+    colors = plt.cm.viridis(np.linspace(0.2, 0.8, len(labels)))
+    bars = ax.barh(y_pos, counts, color=colors, height=0.6, edgecolor='white', linewidth=0.5)
+    
+    # إضافة النسب والعدد على الأشرطة
+    for bar, count, pct in zip(bars, counts, percentages):
+        width = bar.get_width()
+        if width > 0:
+            ax.text(width + 1, bar.get_y() + bar.get_height()/2.,
+                    f'{count} ({pct}%)',
+                    ha='left', va='center', fontsize=8, fontweight='bold')
+    
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(labels, fontproperties=arabic_font, fontsize=9)
+    ax.invert_yaxis()
+    ax.set_xlabel('عدد المشاركين', fontproperties=arabic_font, fontsize=12)
+    ax.set_title('توزيع المشاركين حسب الكلية', fontproperties=arabic_font, fontsize=14, fontweight='bold', pad=15)
+    ax.xaxis.grid(True, linestyle='--', alpha=0.7)
+    ax.set_axisbelow(True)
+    plt.tight_layout()
+    
+    buffer = io.BytesIO()
+    plt.savefig(buffer, format='png', bbox_inches='tight', dpi=120)
+    buffer.seek(0)
+    image_png = buffer.getvalue()
+    buffer.close()
+    plt.close()
+    
+    return base64.b64encode(image_png).decode('utf-8')
 
 
 def update_survey_results():
